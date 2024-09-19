@@ -18,6 +18,10 @@ data_cleaned <- data_cleaned %>%
 #remove colums where (standard deviation = 0)
 data_cleaned <- data_cleaned %>%
   select_if(function(x) sd(x, na.rm = TRUE) != 0)
+View(data_cleaned)
+
+
+data_cleaned = data_cleaned[1:5]
 
 #matrix ignoring NA values
 correlation_matrix <- cor(data_cleaned, use = "pairwise.complete.obs")
