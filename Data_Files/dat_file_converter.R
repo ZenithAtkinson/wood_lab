@@ -14,8 +14,8 @@ library(ggplot2)
 #Original data file, modify per file (implement command line arguments?)
 
 dat_file <- "./Data_Files/OG_dat_files/Great Salt Lake Phragmites_Flux_AmeriFluxFormat.dat"
-data <- read.csv(dat_file, header = FALSE, na.strings = c("NAN", "NaN", "NA")) #This removes the columns "G", "SG", and 1 other (not sure which one)
-
+data <- read.csv(dat_file, header = FALSE) #This removes the columns "G", "SG", and 1 other (not sure which one)
+View(data)
 #preview the first few rows of the data
 #print(head(data))
 #print(typeof(data))
@@ -32,18 +32,21 @@ data <- read.csv(dat_file, header = FALSE, na.strings = c("NAN", "NaN", "NA")) #
 #Extract the header (column names) and units (first two rows)
 headers <- data[1, ]  #first row for headers
 units <- data[2, ]    #second row for units
+View(data)
 
 #combine the headers with the unit values like this: Header name(unit)
-new_headers <- paste(headers, units, sep = " (")
+new_units <- paste(, units, sep = " (")
+print(new_units)
 new_headers <- paste(new_headers, ")", sep = "")
 
 #assign the new headers to the data and remove the first two rows (headers and units)
 data <- data[-(1:2), ]
 colnames(data) <- new_headers
+View(data)
 
 #convert to numeric (for plots)
 data <- data %>% mutate_if(is.character, as.numeric)
-
+View(data)
 #remove all NA vals
 data_cleaned <- data[, colSums(is.na(data)) != nrow(data)]
 
