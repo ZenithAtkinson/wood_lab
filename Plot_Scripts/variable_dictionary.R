@@ -2,19 +2,19 @@
 library(dplyr)
 library(stringr)
 
-# Load the existing data file and AmeriFlux file (replace with your actual file paths)
+# Loa
 existing_data_file = './Data_Files/CSV_files/Cleaned Great Salt Lake Phragmites_Flux_AmeriFluxFormat.csv'
 ameriflux_file = './Data_Files/CSV_files/flux_data_variables.csv'
 
-# Read the CSV files
+# GIVEN claned data + ameriflux dictionary file
 existing_data <- read.csv(existing_data_file, header = TRUE)
 ameriflux_data <- read.csv(ameriflux_file, header = TRUE)
 
-# Extract the headers from the existing data
+# get headers
 existing_headers <- colnames(existing_data)
 
-# Create a dictionary from the AmeriFlux data where the first column is the variable name and the second is the description
-# Clean both the AmeriFlux and existing headers by removing spaces and converting to lowercase
+# create a dictionary from the AmeriFlux data where the first column is the variable name and the second is the description
+# clean both the AmeriFlux and existing headers by removing spaces and converting to lowercase
 clean_ameriflux_dict <- setNames(
   as.list(ameriflux_data[[3]]),
   str_trim(tolower(ameriflux_data[[2]]))
@@ -31,5 +31,6 @@ matching_headers_dict <- sapply(existing_headers, function(header) {
 })
 
 # Print the resulting dictionary
+  # it is not working perfectly but works good enough for now.
 matching_headers_dict
 View(matching_headers_dict)
