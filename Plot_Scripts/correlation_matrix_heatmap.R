@@ -38,25 +38,3 @@ corrplot(correlation_matrix, method = "color",
          number.cex = 0.3)   #plot numbers text size
 
 
-ameriflux_dict = <- list(
-  "TIMESTAMP_START" = "Start of the measurement period. Units: YYYYMMDDHHMM",
-  "TIMESTAMP_END" = "End of the measurement period. Units: YYYYMMDDHHMM",
-  "CO2" = "Carbon dioxide mixing ratio. Units: µmolCO2 mol-1",
-  "H2O" = "Water vapor mixing ratio. Units: mmolH2O mol-1",
-  "FC" = "CO2 flux. Units: µmolCO2 m-2 s-1",
-  "NETRAD" = "Net radiation. Units: W m-2",
-  "LE" = "Latent heat flux. Units: W m-2",
-  "H" = "Sensible heat flux. Units: W m-2",
-  "TA" = "Air temperature. Units: °C",
-  "PA" = "Air pressure. Units: kPa",
-  "RH" = "Relative humidity. Units: %",
-  "WS" = "Wind speed. Units: m s-1",
-  "WD" = "Wind direction. Units: degrees from north",
-  "PPFD_IN" = "Incoming photosynthetically active radiation (PAR). Units: µmol m-2 s-1",
-  "PPFD_OUT" = "Outgoing photosynthetically active radiation (PAR). Units: µmol m-2 s-1",
-  "G" = "Soil heat flux. Units: W m-2",
-  "SW_IN" = "Incoming shortwave radiation. Units: W m-2",
-  "SW_OUT" = "Outgoing shortwave radiation. Units: W m-2",
-  "LW_IN" = "Incoming longwave radiation. Units: W m-2",
-  "LW_OUT" = "Outgoing longwave radiation. Units: W m-2"
-)
