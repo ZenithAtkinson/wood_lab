@@ -1,23 +1,20 @@
-# Load necessary libraries
 library(ggplot2)
 library(corrplot)
 library(dplyr)
 
-# Load the CSV file and prevent automatic renaming of columns
 dat_file <- "./Data_Files/CSV_files/Cleaned Great Salt Lake Phragmites_Flux_AmeriFluxFormat.csv"
 data <- read.csv(dat_file, header = TRUE, na.strings = c("NAN", "NaN", "NA"), check.names = FALSE)
 
-# View the first few rows of the data (optional)
 #View(data)
 
-# Remove columns with all NA values
+# remove columns with all NA values
 data_cleaned <- data[, colSums(is.na(data)) != nrow(data)]
 
-# Remove non-numeric columns (like character columns)
+# remove non-numeric columns (like character columns)
 data_cleaned <- data_cleaned %>%
   select_if(~!is.character(.))  # Remove character columns
 
-# Convert character columns to numeric if there are any
+# convert characters to numeric
 data_cleaned <- data_cleaned %>%
   mutate_if(is.character, as.numeric)
 
@@ -30,15 +27,15 @@ data_cleaned <- data_cleaned %>%
 # Use backticks to select columns with units in their names
 data_cleaned <- data_cleaned %>% select(`CO2`, `H2O`, `FC`, `NETRAD`)
 
-# Create the correlation matrix, ignoring NA values
+# create the correlation matrix, ignore NA values
 correlation_matrix <- cor(data_cleaned, use = "pairwise.complete.obs")
 
 # Plot the correlation matrix using corrplot (prints to R console)
 corrplot(correlation_matrix, method = "color", 
          col = colorRampPalette(c("blue", "white", "red"))(200), 
          type = "full", addCoef.col = "black", 
-         tl.cex = 0.8,       # variable text size
-         number.cex = 0.3)   # plot numbers text size
+         tl.cex = 0.8,       #variable text size
+         number.cex = 0.3)   #plot numbers text size
 
 
 ameriflux_dict = <- list(
