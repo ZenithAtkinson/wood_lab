@@ -14,11 +14,11 @@ data_cleaned <- data[, colSums(is.na(data)) != nrow(data)]
 data_cleaned <- data_cleaned %>%
   select_if(~!is.character(.))  # Remove character columns
 
-# convert characters to numeric
+#convert characters to numeric
 data_cleaned <- data_cleaned %>%
   mutate_if(is.character, as.numeric)
 
-# Remove columns where standard deviation is zero (all values are the same)
+#remove columns where standard deviation is zero (all values are the same)
 data_cleaned <- data_cleaned %>%
   select_if(function(x) sd(x, na.rm = TRUE) != 0)
 
@@ -35,6 +35,4 @@ corrplot(correlation_matrix, method = "color",
          col = colorRampPalette(c("blue", "white", "red"))(200), 
          type = "full", addCoef.col = "black", 
          tl.cex = 0.8,       #variable text size
-         number.cex = 0.3)   #plot numbers text size
-
-
+         number.cex = .6)   #plot numbers text size
