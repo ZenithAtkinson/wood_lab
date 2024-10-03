@@ -30,13 +30,13 @@ matching_headers_dict <- sapply(existing_headers, function(header) {
   }
 })
 
-# Print the resulting dictionary
   # it is not working perfectly but works good enough for now.
 
 
 View(matching_headers_dict)
 
 colnames(existing_data)
+#New, manually inputted dictionary:
 ameriflux_dict <- list(
   "RECORD" = "Record number",
   "TIMESTAMP_START" = "Start of the measurement period. Units: YYYYMMDDHHMM",

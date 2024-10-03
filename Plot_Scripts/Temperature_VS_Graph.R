@@ -11,7 +11,7 @@ colnames(data)
 #Get the columns i want
 # Assuming temperature, ET (evapotranspiration), atmospheric gases (CO2, H2O), solar radiation, and soil water are labeled properly in the CSV
 selected_data <- data %>%
-  select(TA_1_1_1, TA_1_1_2, ET, CO2, H2O, NETRAD, SW_IN, LW_IN)  #
+  select(TA_1_1_1, TA_1_1_2, ET, CO2, H2O, NETRAD, SW_IN, LW_IN) #
 # Create multiple plots in one figure
 ggplot(data = selected_data, aes(x = TA_1_1_1)) + 
   geom_point(aes(y = ET, color = "ET")) + 

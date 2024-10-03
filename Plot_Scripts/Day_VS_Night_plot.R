@@ -15,7 +15,7 @@ data$Month <- as.numeric(format(data$TIMESTAMP_START, "%m"))
 data_filtered <- data %>% filter(Month == 7)
 
 # Define day and night periods (6 AM to 6 PM for day, 6 PM to 6 AM for night) 24hr time
-data_filtered$Period <- ifelse(data_filtered$Hour >= 6 & data_filtered$Hour < 18, "Day", "Night")
+data_filtered$Period <- ifelse(data_filtered$Hour >= 6 & data_filtered$Hour < 21, "Day", "Night")
 
 # filter out rows where CO2 values are missing
 data_filtered <- data_filtered %>% filter(!is.na(CO2))
@@ -24,6 +24,14 @@ data_filtered <- data_filtered %>% filter(!is.na(CO2))
 ggplot(data_filtered, aes(x = TIMESTAMP_START, y = CO2, color = Period)) +
   geom_line() +
   labs(title = "CO2 Levels by Time of Day (Filtered by Month)",
+       x = "Time",
+       y = "CO2 Levels (ppm)") +
+  scale_color_manual(values = c("Day" = "blue", "Night" = "red")) +
+  theme_minimal()
+
+ggplot(data_filtered, aes(x = TIMESTAMP_START, y = CO2, color = Period)) +
+  geom_smooth(se = FALSE, method = "loess", span = 0.2) +  # Smooth the lines using LOESS
+  labs(title = "Smoothed CO2 Levels by Time of Day (Filtered by Month)",
        x = "Time",
        y = "CO2 Levels (ppm)") +
   scale_color_manual(values = c("Day" = "blue", "Night" = "red")) +
