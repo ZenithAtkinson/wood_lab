@@ -13,7 +13,7 @@ library(ggplot2)
 
 #Original data file, modify per file (implement command line arguments?)
 
-dat_file <- "./Data_Files/OG_dat_files/Great Salt Lake Phragmites_Flux_AmeriFluxFormat.dat"
+dat_file <- "./Data_Files/OG_dat_files/Great Salt Lake Phragmites_Flux_CSFormat.dat"
 data <- read.csv(dat_file, header = FALSE, na.strings = c("NAN", "NaN", "NA")) #This removes the columns "G", "SG", and 1 other (not sure which one)
 View(data)
 #preview the first few rows of the data
@@ -43,6 +43,6 @@ data <- data %>% mutate_if(is.character, as.numeric)
 data_cleaned <- data[, colSums(is.na(data)) != nrow(data)]
 
 View(data_cleaned)
-write.csv(data_cleaned, "Cleaned(with units) Great Salt Lake Phragmites_Flux_AmeriFluxFormat.csv", row.names = FALSE)
+write.csv(data_cleaned, "Cleaned(with units) Great Salt Lake Phragmites_Flux_CSFormat.csv", row.names = FALSE)
 
-print("Converted and cleaned csv data saved as 'Cleaned(with units) Great Salt Lake Phragmites_Flux_AmeriFluxFormat.csv'.")
+print("Converted and cleaned csv data saved as 'Cleaned(with units) Great Salt Lake Phragmites_Flux_CSFormat.csv'.")
