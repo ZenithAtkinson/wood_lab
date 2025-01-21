@@ -14,6 +14,7 @@ library(ggplot2)
 #Original data file, modify per file (implement command line arguments?)
 
 dat_file <- "./Data_Files/OG_dat_files/Great Salt Lake Phragmites_Flux_CSFormat.dat"
+dat_file <- "/Users/zenit/Downloads/Great Salt Lake Phragmites_Flux_AmeriFluxFormat.dat"
 data <- read.csv(dat_file, header = FALSE, na.strings = c("NAN", "NaN", "NA")) #This removes the columns "G", "SG", and 1 other (not sure which one)
 View(data)
 #preview the first few rows of the data
@@ -21,20 +22,21 @@ View(data)
 #print(typeof(data))
 
 
-#Select specific rows
+#TO: Select specific rows
 #filtered_data <- data %>%
 #  slice(1:10)
 
-#select specific columns(need to replace col names)
+#TO: Select specific columns(need to replace col names)
 #selected_columns <- data %>%
 #  select(column1, column2)
 
 names(data) <- data[2,]
-data <- data[-2,]
-View(data)
+units <- as.character(unlist(data[3,])) # Store units from row 3
 
-#assign the new headers to the data and remove the first two rows (headers and units)
-data <- data[-(1:3), ]
+# Append units to each corresponding column name
+names(data) <- mapply(function(name, unit) paste(name, "(", unit, ")", sep = ""), names(data), units)
+
+data <- data[-(1:3), ] # Remove the first three rows (headers and units)
 View(data)
 #convert to numeric (for plots)
 data <- data %>% mutate_if(is.character, as.numeric)
