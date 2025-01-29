@@ -1,0 +1,272 @@
+#!/bin/bash
+
+# ===========================================================================
+#
+#                            PUBLIC DOMAIN NOTICE
+#            National Center for Biotechnology Information (NCBI)
+#
+#  This software/database is a "United States Government Work" under the
+#  terms of the United States Copyright Act.  It was written as part of
+#  the author's official duties as a United States Government employee and
+#  thus cannot be copyrighted.  This software/database is freely available
+#  to the public for use. The National Library of Medicine and the U.S.
+#  Government do not place any restriction on its use or reproduction.
+#  We would, however, appreciate having the NCBI and the author cited in
+#  any work or product based on this material.
+#
+#  Although all reasonable efforts have been taken to ensure the accuracy
+#  and reliability of the software and data, the NLM and the U.S.
+#  Government do not and cannot warrant the performance or results that
+#  may be obtained by using this software or data. The NLM and the U.S.
+#  Government disclaim all warranties, express or implied, including
+#  warranties of performance, merchantability or fitness for any particular
+#  purpose.
+#
+# ===========================================================================
+#
+# File Name:  xfetch
+#
+# Author:  Jonathan Kans
+#
+# Version Creation Date:   01/11/2025
+#
+# ==========================================================================
+
+dbase=""
+recname=""
+flag="none"
+turbo=false
+xmltag=""
+doctype=""
+settag=""
+target=""
+rest=""
+
+while [ $# -gt 0 ]
+do
+  case "$1" in
+    -strict )
+      flag="strict"
+      shift
+      ;;
+    -mixed )
+      flag="mixed"
+      shift
+      ;;
+    -flag )
+      flag=$2
+      shift
+      shift
+      ;;
+    -db )
+      dbase=$2
+      shift
+      shift
+      ;;
+    -tag )
+      recname=$2
+      shift
+      shift
+      ;;
+    -xml )
+      xmltag=$2
+      shift
+      shift
+      ;;
+    -doctype )
+      doctype=$2
+      shift
+      shift
+      ;;
+    -set )
+      settag=$2
+      shift
+      shift
+      ;;
+    -turbo )
+      turbo=true
+      shift
+      ;;
+    -* )
+      exec >&2
+      echo "$0: Unrecognized option $1"
+      exit 1
+      ;;
+    * )
+      break
+      ;;
+  esac
+done
+
+# parse ENTREZ_DIRECT object
+
+ParseMessage() {
+
+  mesg=$1
+  objc=$2
+  shift 2
+
+  if [ -z "$mesg" ]
+  then
+    return 1
+  fi
+
+  object=$( echo "$mesg" | tr -d '\n' | sed -n "s|.*<$objc>\\(.*\\)</$objc>.*|\\1|p" )
+  if [ -z "$object" ]
+  then
+    return 2
+  fi
+
+  err=$( echo "$object" | sed -n 's|.*<Error>\(.*\)</Error>.*|\1|p' )
+  if [ -z "$err" ]
+  then
+    while [ $# -gt 0 ]
+    do
+      var=$1
+      fld=$2
+      shift 2
+      value=$( echo "$object" | sed -n "s|.*<$fld>\\(.*\\)</$fld>.*|\\1|p" )
+      eval "$var=\$value"
+    done
+  fi
+
+  return 0
+}
+
+# check for ENTREZ_DIRECT object, or list of UIDs, piped from stdin
+
+ParseStdin() {
+
+  if [ \( -e /dev/fd/0 -o ! -d /dev/fd \) -a ! -t 0 ]
+  then
+    mssg=$( cat )
+    ParseMessage "$mssg" ENTREZ_DIRECT \
+                  dbase Db num Count
+    if [ "$?" = 2 ]
+    then
+      # if no ENTREZ_DIRECT message present, support passing raw UIDs via stdin
+      rest="$mssg"
+    else
+      # support for UIDs instantiated within message in lieu of Entrez History
+      rest=$( echo "$mssg" |
+              xtract -pattern ENTREZ_DIRECT -sep "\n" -element Id |
+              grep '.' | sort -n | uniq )
+    fi
+  fi
+}
+
+# check for ENTREZ_DIRECT message or piped UIDs unless database and UIDs provided in command line
+
+if [ -z "$db" ]
+then
+  ParseStdin
+elif [ -z "$ids" ] && [ -z "$input" ]
+then
+  ParseStdin
+fi
+
+GetUIDs() {
+
+  if [ -n "$rest" ]
+  then
+    # raw UIDs or instantiated UIDs extracted from ENTREZ_DIRECT message
+    echo "$rest" |
+    tr -cs a-zA-Z0-9_. '\n'
+  fi |
+
+  # sort and unique final UID results
+  sort -n | uniq
+}
+
+target=$( echo "${target}/Archive")
+
+if [ -z "$dbase" ]
+then
+  echo "Must supply database in -db argument"
+  exit 1
+fi
+
+case "$dbase" in
+  pubmed )
+    recname="PubmedArticle"
+    settag="PubmedArticleSet"
+    xmltag='<?xml version="1.0" encoding="UTF-8" ?>'
+    doctype='<!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2019//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_190101.dtd">'
+    ;;
+  pmc )
+    recname="PMCInfo"
+    settag="PMCInfoSet"
+    xmltag='<?xml version="1.0" encoding="UTF-8" ?>'
+    doctype='<!DOCTYPE PMCInfoSet>'
+    ;;
+  taxonomy )
+    recname="TaxonInfo"
+    settag="TaxonInfoSet"
+    xmltag='<?xml version="1.0" encoding="UTF-8" ?>'
+    doctype='<!DOCTYPE TaxonInfoSet>'
+    ;;
+  * )
+    ;;
+esac
+
+# get local master and working volumes from database
+ev=$( rchive -local "$dbase" )
+if [ -n "$ev" ]
+then
+  # only care about master volume and its Archive subfolder
+  target="${ev%:*}"
+fi
+
+if [ -z "$target" ]
+then
+  echo "ERROR: Must supply path to local data by setting EDIRECT_LOCAL_MASTER environment variable" >&2
+  exit 1
+fi
+
+osname=`uname -s | sed -e 's/_NT-.*$/_NT/; s/^MINGW[0-9]*/CYGWIN/'`
+if [ "$osname" = "CYGWIN_NT" -a -x /bin/cygpath ]
+then
+  target=`cygpath -w "$target"`
+fi
+
+# remove trailing slash
+target=${target%/}
+
+if [ ! -d "$target" ]
+then
+  echo "ERROR: Local archive ${target} is not mounted" >&2
+  exit 1
+fi
+
+target=$( echo "${target}/Archive")
+
+if [ -z "$recname" ] || [ -z "$settag" ]
+then
+  echo "ERROR: Missing -tag or -set from database-specific wrapper, use database-specific fetch script" >&2
+  exit 1
+fi
+
+if [ -n "$xmltag" ]
+then
+  echo "$xmltag"
+fi
+if [ -n "$doctype" ]
+then
+  echo "$doctype"
+fi
+if [ -n "$settag" ]
+then
+  echo "<${settag}>"
+fi
+if [ "$turbo" = true ]
+then
+  GetUIDs |
+  rchive -gzip -db "$dbase" -tag "$recname" -flag "$flag" -turbo -fetch "$target"
+else
+  GetUIDs |
+  rchive -gzip -db "$dbase" -tag "$recname" -flag "$flag" -fetch "$target"
+fi
+if [ -n "$settag" ]
+then
+  echo "</${settag}>"
+fi
