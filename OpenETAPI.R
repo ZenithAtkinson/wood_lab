@@ -1,36 +1,49 @@
-# Load required library
 library(httr)
 library(jsonlite)
-s
-# API key and endpoint
-api_key <- "wood-atkinson-key"
-endpoint <- "https://openet.dri.edu/data/"
+library(tidyverse)
 
-# Define coordinates and parameters
-latitude <- 41.0603
-longitude <- -112.1014
+# Set your API key (replace with your actual key)
+Sys.setenv(OPENET_API_KEY = "RfsmpvZYkxj1UZTH45tL1eZUUoElgWjJL7etRMqBEpkHbgaGzTiOPaAMSPqv")
 
-params <- list(
-  coordinates = paste0("[", longitude, ", ", latitude, "]"),
-  start_date = "2023-01-01",
-  end_date = "2023-12-31",
-  variables = "et",
-  api_key = api_key
+# Define headers EXACTLY as in Python example
+headers <- add_headers(
+  "Authorization" = Sys.getenv("OPENET_API_KEY"),  # Direct key, no "Bearer"
+  "Content-Type" = "application/json"
 )
 
-# Send GET request
-response <- GET(endpoint, query = params)
+lat_decimal <- 41 + (3/60) + (37/3600)  # ≈ 41.0603
+lon_decimal <- -(112 + (6/60) + (5/3600))  # ≈ -112.1014
 
-# Check for successful response
+args <- list(
+  date_range = c("2020-01-01", "2023-12-31"),  # Match UGS data timeframe
+  interval = "daily",                          # Match UGS temporal resolution
+  geometry = c(lon_decimal, lat_decimal),      # UGS coordinates
+  model = "Ensemble",
+  variable = "ET",
+  reference_et = "gridMET",
+  units = "mm",
+  file_format = "JSON"
+)
+
+# Fetch OpenET data
+response <- POST(
+  "https://openet-api.org/raster/timeseries/point",
+  config = headers,
+  body = toJSON(args, auto_unbox = TRUE, digits = 7)
+)
+
 if (status_code(response) == 200) {
-  # Convert JSON response to a data frame
-  data <- fromJSON(content(response, as = "text"), flatten = TRUE)
-  print(data)
+  openet_data <- fromJSON(content(response, "text")) %>%
+    mutate(date = as.Date(time)) %>%
+    select(date, et_openet = et)
   
-  # Optional: Save the ET data to a CSV file
-  write.csv(data, "OpenET_evapotranspiration_data.csv", row.names = FALSE)
+  # Add this line to print the data
+  print(openet_data)
   
 } else {
-  # Print error message if request fails
-  print(paste("Error:", status_code(response), content(response, as = "text")))
+  cat("Error:", status_code(response), "\n")
+  print(content(response, "text"))
 }
+
+#-------------------------------------------------------------------------------
+
